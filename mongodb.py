@@ -17,3 +17,6 @@ def create_connection() -> MongoClient:
 
 def insert_artists(artists_docs: list, mongo_client: MongoClient):
     mongo_client.artists.insert_many(artists_docs)
+    
+def insert_albums(albums_docs: list, mongo_client: MongoClient):
+    mongo_client.albums.insert_many(albums_docs)

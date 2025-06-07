@@ -22,6 +22,11 @@ def create_connection() -> connection:
 
 def select_artists(pg_conn: connection) -> list[tuple]:
     with pg_conn.cursor() as cursor:
-        cursor.execute("SELECT * FROM ARTIST a")
+        cursor.execute("SELECT * FROM ARTIST")
+        return cursor.fetchall()
+    
+def select_albums(pg_conn: connection) -> list[tuple]:
+    with pg_conn.cursor() as cursor:
+        cursor.execute("SELECT * FROM ALBUM")
         return cursor.fetchall()
         
