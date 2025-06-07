@@ -1,9 +1,10 @@
 import psycopg2
 from psycopg2 import OperationalError
+from psycopg2.extensions import connection
 import os
 
 
-def create_connection():
+def create_connection() -> connection:
     try:
         # Parámetros de conexión
         connection = psycopg2.connect(
@@ -19,3 +20,8 @@ def create_connection():
         print(f"❌ Error al conectar: {e}")
         return None
 
+def select_artists(pg_conn: connection) -> list[tuple]:
+    with pg_conn.cursor() as cursor:
+        cursor.execute("SELECT * FROM ARTIST a")
+        return cursor.fetchall()
+        
