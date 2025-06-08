@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2 import OperationalError
 from psycopg2.extensions import connection
+from psycopg2.extras import RealDictCursor
 import os
 
 
@@ -29,4 +30,13 @@ def select_albums(pg_conn: connection) -> list[tuple]:
     with pg_conn.cursor() as cursor:
         cursor.execute("SELECT * FROM ALBUM")
         return cursor.fetchall()
-        
+    
+def select_tracks_with_genre_and_media_type(pg_conn: connection) -> list[dict]:
+    with pg_conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute('''
+                        SELECT T.*, G.name AS genre, MT.name AS media_type
+                        FROM TRACK T 
+                        JOIN GENRE G ON T.GENRE_ID = G.GENRE_ID
+                        JOIN MEDIA_TYPE MT ON T.MEDIA_TYPE_ID = MT.MEDIA_TYPE_ID 
+                    ''')
+        return cursor.fetchall()
