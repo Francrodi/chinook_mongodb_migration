@@ -54,3 +54,8 @@ def select_employees(pg_conn: connection) -> list[dict]:
     with pg_conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute("SELECT * FROM EMPLOYEE")
         return cursor.fetchall()
+    
+def select_customers(pg_conn: connection) -> list[dict]:
+    with pg_conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute("SELECT * FROM CUSTOMER")
+        return cursor.fetchall()

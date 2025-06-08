@@ -95,6 +95,31 @@ def migrate_employees(pg_conn: connection, mongo_client: MongoClient) -> list:
     mongodb.insert_employees(employees_docs, mongo_client)
     return pg_employees_ids
 
+def migrate_customers(pg_employees_ids: list, pg_conn: connection, mongo_client: MongoClient) -> list:
+    pg_customers_ids = {} # diccionario con id postgres a id mongo para busqueda de FK
+    customer_docs = []
+    pg_customers = rdb.select_customers(pg_conn)
+    for customer in pg_customers:
+        customer_doc_id = ObjectId()
+        pg_customers_ids[customer["customer_id"]] = customer_doc_id
+        customer_docs.append({
+            "_id": customer_doc_id,
+            "first_name": customer["first_name"],
+            "last_name": customer["last_name"],
+            "company": customer["company"],
+            "address": customer["address"],
+            "city": customer["city"],
+            "state": customer["state"],
+            "country": customer["country"],
+            "postal_code": customer["postal_code"],
+            "phone": customer["phone"],
+            "fax": customer["fax"],
+            "email": customer["email"],
+            "support_rep_id": None if customer["support_rep_id"] is None else pg_employees_ids[customer["support_rep_id"]]
+        })
+    mongodb.insert_customers(customer_docs, mongo_client)
+    return pg_customers_ids
+
 def _resolve_employee_id(pg_employee_id, pg_employees_ids: dict) -> ObjectId | None:
     if pg_employee_id is None: return None
     if pg_employee_id in pg_employees_ids: return pg_employees_ids[pg_employee_id]

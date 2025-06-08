@@ -29,3 +29,6 @@ def insert_playlists(playlists_docs: list, mongo_client: MongoClient):
     
 def insert_employees(employees_docs: list, mongo_client: MongoClient):
     mongo_client.employees.insert_many(employees_docs)
+
+def insert_customers(customer_docs: list, mongo_client: MongoClient):
+    mongo_client.customers.insert_many(customer_docs)
