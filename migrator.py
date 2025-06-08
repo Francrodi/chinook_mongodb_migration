@@ -120,6 +120,32 @@ def migrate_customers(pg_employees_ids: list, pg_conn: connection, mongo_client:
     mongodb.insert_customers(customer_docs, mongo_client)
     return pg_customers_ids
 
+def migrate_invoices(pg_customers_ids: list, pg_tracks_ids: list, pg_conn: connection, mongo_client: MongoClient):
+    invoices = {} # Diccionario clave_pg: valor_doc_mongo
+    pg_invoices = rdb.select_invoices_with_invoices_lines(pg_conn)
+    for invoice in pg_invoices:
+        line = {
+            "track_id": pg_tracks_ids[invoice["track_id"]],
+            "unit_price": Decimal128(invoice["unit_price"]),
+            "quantity": invoice["quantity"] 
+        }
+        if invoice["invoice_id"] in invoices:
+            invoices[invoice["invoice_id"]]["lines"].append(line)
+        else:
+            invoices[invoice["invoice_id"]] = {
+                "_id": ObjectId(),
+                "customer_id": pg_customers_ids[invoice["customer_id"]],
+                "invoice_date": invoice["invoice_date"],
+                "billing_address": invoice["billing_address"],
+                "billing_city": invoice["billing_city"],
+                "billing_state": invoice["billing_state"],
+                "billing_country": invoice["billing_country"],
+                "billing_postal_code": invoice["billing_postal_code"],
+                "total": Decimal128(invoice["total"]),
+                "lines": [line]
+            }
+    mongodb.insert_invoices(list(invoices.values()), mongo_client)
+
 def _resolve_employee_id(pg_employee_id, pg_employees_ids: dict) -> ObjectId | None:
     if pg_employee_id is None: return None
     if pg_employee_id in pg_employees_ids: return pg_employees_ids[pg_employee_id]

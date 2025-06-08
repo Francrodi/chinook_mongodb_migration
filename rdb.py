@@ -59,3 +59,13 @@ def select_customers(pg_conn: connection) -> list[dict]:
     with pg_conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute("SELECT * FROM CUSTOMER")
         return cursor.fetchall()
+
+
+def select_invoices_with_invoices_lines(pg_conn: connection) -> list[tuple]:
+    with pg_conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute('''
+                        SELECT I.*, IL.track_id, IL.unit_price, IL.quantity
+                        FROM INVOICE I 
+                        JOIN INVOICE_LINE IL ON I.invoice_id = IL.invoice_id 
+                       ''')
+        return cursor.fetchall()

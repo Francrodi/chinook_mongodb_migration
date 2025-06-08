@@ -32,3 +32,6 @@ def insert_employees(employees_docs: list, mongo_client: MongoClient):
 
 def insert_customers(customer_docs: list, mongo_client: MongoClient):
     mongo_client.customers.insert_many(customer_docs)
+    
+def insert_invoices(invoices_docs: list, mongo_client: MongoClient):
+    mongo_client.invoices.insert_many(invoices_docs)

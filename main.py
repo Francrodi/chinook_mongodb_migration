@@ -22,7 +22,9 @@ if __name__ == "__main__":
         print("Migrando playlists...")
         migrator.migrate_playlists(pg_tracks_ids, pg_conn, mongo_client)
         print("Migrando empleados...")
-        pg_employees_id = migrator.migrate_employees(pg_conn, mongo_client)
+        pg_employees_ids = migrator.migrate_employees(pg_conn, mongo_client)
         print("Migrando clientes...")
-        pg_customers_id = migrator.migrate_customers(pg_employees_id, pg_conn, mongo_client)
-        
+        pg_customers_ids = migrator.migrate_customers(pg_employees_ids, pg_conn, mongo_client)
+        print("Migrando facturas...")
+        migrator.migrate_invoices(pg_customers_ids, pg_tracks_ids, pg_conn, mongo_client)
+        print("Migración finalizada con éxito.")
