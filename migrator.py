@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from psycopg2.extensions import connection
-from rdb import select_artists, select_albums, select_tracks_with_genre_and_media_type, select_playlists_with_tracks
-from mongodb import insert_artists, insert_albums, insert_tracks, insert_playlists
+import rdb
+import mongodb
 from bson.objectid import ObjectId
 from bson.decimal128 import Decimal128
 
@@ -9,7 +9,7 @@ from bson.decimal128 import Decimal128
 def migrate_artists(pg_conn: connection, mongo_client: MongoClient) -> list:
     pg_artists_ids = {} # diccionario con id postgres a id mongo para busqueda de FK
     artists_docs = [] # listado de artistas a insertar en mongo
-    pg_artists = select_artists(pg_conn)
+    pg_artists = rdb.select_artists(pg_conn)
     for id, name in pg_artists:
         artist_doc_id = ObjectId()
         pg_artists_ids[id] = artist_doc_id
@@ -17,13 +17,13 @@ def migrate_artists(pg_conn: connection, mongo_client: MongoClient) -> list:
             "_id": artist_doc_id,
             "name": name
         })
-    insert_artists(artists_docs, mongo_client)
+    mongodb.insert_artists(artists_docs, mongo_client)
     return pg_artists_ids
 
 def migrate_albums(pg_artists_ids, pg_conn: connection, mongo_client: MongoClient) -> list:
     pg_albums_ids = {} # diccionario con id postgres a id mongo para busqueda de FK
     albums_docs = [] # listado de albumes a insertar en mongo
-    pg_albums = select_albums(pg_conn)
+    pg_albums = rdb.select_albums(pg_conn)
     for id, title, artist_id in pg_albums:
         album_doc_id = ObjectId()
         pg_albums_ids[id] = album_doc_id
@@ -32,13 +32,13 @@ def migrate_albums(pg_artists_ids, pg_conn: connection, mongo_client: MongoClien
             "title": title,
             "artist_id": pg_artists_ids[artist_id]
         })
-    insert_albums(albums_docs, mongo_client)
+    mongodb.insert_albums(albums_docs, mongo_client)
     return pg_albums_ids
 
 def migrate_tracks(pg_albums_ids: list, pg_conn: connection, mongo_client: MongoClient) -> list:
     pg_tracks_ids = {} # diccionario con id postgres a id mongo para busqueda de FK
     tracks_docs = [] # listado de tracks a insertar en mongo
-    pg_tracks = select_tracks_with_genre_and_media_type(pg_conn)
+    pg_tracks = rdb.select_tracks_with_genre_and_media_type(pg_conn)
     for track in pg_tracks:
         track_doc_id = ObjectId()
         pg_tracks_ids[track["track_id"]] = track_doc_id
@@ -53,12 +53,12 @@ def migrate_tracks(pg_albums_ids: list, pg_conn: connection, mongo_client: Mongo
             "bytes": track["bytes"],
             "unit_price": Decimal128(track["unit_price"]),
         })
-    insert_tracks(tracks_docs, mongo_client)
+    mongodb.insert_tracks(tracks_docs, mongo_client)
     return pg_tracks_ids
 
 def migrate_playlists(pg_tracks_ids: list, pg_conn: connection, mongo_client: MongoClient):
     playlists = {} # Diccionario clave_pg: valor_doc_mongo
-    pg_playlists = select_playlists_with_tracks(pg_conn)
+    pg_playlists = rdb.select_playlists_with_tracks(pg_conn)
     for playlist_id, playlist_name, track_id in pg_playlists:
         if playlist_id in playlists:
             playlists[playlist_id]["tracks"].append(pg_tracks_ids[track_id])
@@ -68,4 +68,35 @@ def migrate_playlists(pg_tracks_ids: list, pg_conn: connection, mongo_client: Mo
                 "name": playlist_name,
                 "tracks": [] if track_id is None else [pg_tracks_ids[track_id]] # Para evitar problemas con playlists vacias
             }
-    insert_playlists(list(playlists.values()), mongo_client)
+    mongodb.insert_playlists(list(playlists.values()), mongo_client)
+    
+def migrate_employees(pg_conn: connection, mongo_client: MongoClient) -> list:
+    pg_employees_ids = {} # diccionario con id postgres a id mongo para busqueda de FK y referencias circulares
+    employees_docs = []
+    pg_employees = rdb.select_employees(pg_conn)
+    for employee in pg_employees:
+        employees_docs.append({
+            "_id": _resolve_employee_id(employee["employee_id"], pg_employees_ids),
+            "first_name": employee["first_name"],
+            "last_name": employee["last_name"],
+            "title": employee["title"],
+            "reports_to": _resolve_employee_id(employee["reports_to"], pg_employees_ids),
+            "birth_date": employee["birth_date"],
+            "hire_date": employee["hire_date"],
+            "address": employee["address"],
+            "city": employee["city"],
+            "state": employee["state"],
+            "country": employee["country"],
+            "postal_code": employee["postal_code"],
+            "phone": employee["phone"],
+            "fax": employee["fax"],
+            "email": employee["email"]
+        })
+    mongodb.insert_employees(employees_docs, mongo_client)
+    return pg_employees_ids
+
+def _resolve_employee_id(pg_employee_id, pg_employees_ids: dict) -> ObjectId | None:
+    if pg_employee_id is None: return None
+    if pg_employee_id in pg_employees_ids: return pg_employees_ids[pg_employee_id]
+    pg_employees_ids[pg_employee_id] = ObjectId()
+    return pg_employees_ids[pg_employee_id]

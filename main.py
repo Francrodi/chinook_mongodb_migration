@@ -1,6 +1,6 @@
 from rdb import create_connection as pg_create_connection
 from mongodb import create_connection as mongo_connection
-from migrator import migrate_artists, migrate_albums, migrate_tracks, migrate_playlists
+import migrator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,13 +13,14 @@ if __name__ == "__main__":
                 version = cur.fetchone()
                 print("Versión de PostgreSQL:", version)        
         mongo_client = mongo_connection()
-        print(mongo_client.list_collection_names())
         print("Migrando artistas...")
-        pg_artists_ids = migrate_artists(pg_conn, mongo_client)
+        pg_artists_ids = migrator.migrate_artists(pg_conn, mongo_client)
         print("Migrando albumes...")
-        pg_albums_ids = migrate_albums(pg_artists_ids, pg_conn, mongo_client)
+        pg_albums_ids = migrator.migrate_albums(pg_artists_ids, pg_conn, mongo_client)
         print("Migrando tracks...")
-        pg_tracks_ids = migrate_tracks(pg_albums_ids, pg_conn, mongo_client)
+        pg_tracks_ids = migrator.migrate_tracks(pg_albums_ids, pg_conn, mongo_client)
         print("Migrando playlists...")
-        migrate_playlists(pg_tracks_ids, pg_conn, mongo_client)
+        migrator.migrate_playlists(pg_tracks_ids, pg_conn, mongo_client)
+        print("Migrando empleados...")
+        pg_employees_id = migrator.migrate_employees(pg_conn, mongo_client)
         

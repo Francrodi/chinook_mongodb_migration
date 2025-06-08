@@ -49,3 +49,8 @@ def select_playlists_with_tracks(pg_conn: connection) -> list[tuple]:
                         LEFT JOIN PLAYLIST_TRACK PT ON p.PLAYLIST_ID = pt.PLAYLIST_ID 
                        ''')
         return cursor.fetchall()
+    
+def select_employees(pg_conn: connection) -> list[dict]:
+    with pg_conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute("SELECT * FROM EMPLOYEE")
+        return cursor.fetchall()
