@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from psycopg2.extensions import connection
-from rdb import select_artists, select_albums, select_tracks_with_genre_and_media_type
-from mongodb import insert_artists, insert_albums, insert_tracks
+from rdb import select_artists, select_albums, select_tracks_with_genre_and_media_type, select_playlists_with_tracks
+from mongodb import insert_artists, insert_albums, insert_tracks, insert_playlists
 from bson.objectid import ObjectId
 from bson.decimal128 import Decimal128
 
@@ -55,3 +55,17 @@ def migrate_tracks(pg_albums_ids: list, pg_conn: connection, mongo_client: Mongo
         })
     insert_tracks(tracks_docs, mongo_client)
     return pg_tracks_ids
+
+def migrate_playlists(pg_tracks_ids: list, pg_conn: connection, mongo_client: MongoClient):
+    playlists = {} # Diccionario clave_pg: valor_doc_mongo
+    pg_playlists = select_playlists_with_tracks(pg_conn)
+    for playlist_id, playlist_name, track_id in pg_playlists:
+        if playlist_id in playlists:
+            playlists[playlist_id]["tracks"].append(pg_tracks_ids[track_id])
+        else:
+            playlists[playlist_id] = {
+                "_id": ObjectId(),
+                "name": playlist_name,
+                "tracks": [] if track_id is None else [pg_tracks_ids[track_id]] # Para evitar problemas con playlists vacias
+            }
+    insert_playlists(list(playlists.values()), mongo_client)

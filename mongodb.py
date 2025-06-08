@@ -23,3 +23,6 @@ def insert_albums(albums_docs: list, mongo_client: MongoClient):
     
 def insert_tracks(tracks_docs: list, mongo_client: MongoClient):
     mongo_client.tracks.insert_many(tracks_docs)
+    
+def insert_playlists(playlists_docs: list, mongo_client: MongoClient):
+    mongo_client.playlists.insert_many(playlists_docs)

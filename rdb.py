@@ -40,3 +40,12 @@ def select_tracks_with_genre_and_media_type(pg_conn: connection) -> list[dict]:
                         JOIN MEDIA_TYPE MT ON T.MEDIA_TYPE_ID = MT.MEDIA_TYPE_ID 
                     ''')
         return cursor.fetchall()
+    
+def select_playlists_with_tracks(pg_conn: connection) -> list[tuple]:
+    with pg_conn.cursor() as cursor:
+        cursor.execute('''
+                        SELECT p.*, pt.track_id 
+                        FROM PLAYLIST P 
+                        LEFT JOIN PLAYLIST_TRACK PT ON p.PLAYLIST_ID = pt.PLAYLIST_ID 
+                       ''')
+        return cursor.fetchall()

@@ -1,6 +1,6 @@
 from rdb import create_connection as pg_create_connection
 from mongodb import create_connection as mongo_connection
-from migrator import migrate_artists, migrate_albums, migrate_tracks
+from migrator import migrate_artists, migrate_albums, migrate_tracks, migrate_playlists
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,5 +20,6 @@ if __name__ == "__main__":
         pg_albums_ids = migrate_albums(pg_artists_ids, pg_conn, mongo_client)
         print("Migrando tracks...")
         pg_tracks_ids = migrate_tracks(pg_albums_ids, pg_conn, mongo_client)
-        print(pg_tracks_ids[1])
+        print("Migrando playlists...")
+        migrate_playlists(pg_tracks_ids, pg_conn, mongo_client)
         
