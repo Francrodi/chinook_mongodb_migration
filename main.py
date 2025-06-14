@@ -1,6 +1,8 @@
-from rdb import create_connection as pg_create_connection
+from rdb import create_connection as pg_create_connection, get_artist_songs as pg_artist_songs
 from mongodb import create_connection as mongo_connection
+import mongodb
 import migrator
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,5 +32,16 @@ def migrate_v1(mongo_client):
     
 if __name__ == "__main__":
     mongo_client = mongo_connection()
-    migrate_v1(mongo_client)
+    # migrate_v1(mongo_client)
+    
+    mongodb.get_artist_songs("AC/DC", mongo_client)
+    mongodb.get_amount_of_songs_selled(mongo_client)
+    mongodb.get_artists_in_genre("Rock", mongo_client)
+    mongodb.songs_in_playlist("Music", mongo_client)
+    mongodb.get_quantity_sold_tracks_by_artist(mongo_client)
+    mongodb.get_songs_bougth_by_customer("684db5dab47b2bc9a8b156ee", mongo_client)
+    mongodb.invoices_in_date_range(datetime(2021, 1, 1), datetime(2021, 2, 1), mongo_client)
+    mongodb.get_genres_quantity_sold(mongo_client)
+    mongodb.amount_sold_by_month(mongo_client)
+    
     

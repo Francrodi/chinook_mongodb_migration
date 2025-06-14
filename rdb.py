@@ -3,6 +3,7 @@ from psycopg2 import OperationalError
 from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor
 import os
+import time
 
 
 def create_connection() -> connection:
@@ -68,4 +69,22 @@ def select_invoices_with_invoices_lines(pg_conn: connection) -> list[tuple]:
                         FROM INVOICE I 
                         JOIN INVOICE_LINE IL ON I.invoice_id = IL.invoice_id 
                        ''')
+        return cursor.fetchall()
+    
+def get_artist_songs(artist: str, pg_conn: connection):
+    with pg_conn.cursor() as cursor:
+        start = time.time()
+        cursor.execute('''
+                       SELECT 
+                            t.track_id,
+                            t.name AS track_name,
+                            al.title AS album_title,
+                            ar.name AS artist_name
+                        FROM track t
+                        JOIN album al ON t.album_id = al.album_id
+                        JOIN artist ar ON al.artist_id = ar.artist_id
+                        WHERE ar.name = 'AC/DC';
+                       ''')
+        end = time.time()
+        print(f"Duración de la query: {end - start:.4f} segundos")
         return cursor.fetchall()
