@@ -40,8 +40,8 @@ if __name__ == "__main__":
     mongodb.get_artists_in_genre("Rock")
     mongodb.songs_in_playlist("Music")
     mongodb.get_quantity_sold_tracks_by_artist()
-    mongodb.get_songs_bougth_by_customer("684db5dab47b2bc9a8b156ee")
-    mongodb.invoices_in_date_range(datetime(2021, 1, 1), datetime(2021, 2, 1))
+    mongodb.get_songs_bought_by_customer("684db5dab47b2bc9a8b156ee")
+    mongodb.invoices_in_date_range(datetime(2021, 1, 1), datetime(2021, 2, 4))
     mongodb.get_genres_quantity_sold()
     mongodb.amount_sold_by_month()
     

@@ -222,7 +222,7 @@ class MongoConnection:
         #     print(f"{artista['nombre_artista']}: {artista['ventas_totales']} unidades vendidas")
         
     @time_function
-    def get_songs_bougth_by_customer(self, customer_id: str):
+    def get_songs_bought_by_customer(self, customer_id: str):
         pipeline = [
             # Filtrar facturas del cliente
             {"$match": {"customer_id": ObjectId(customer_id)}},
@@ -254,15 +254,30 @@ class MongoConnection:
         
     @time_function
     def invoices_in_date_range(self, start_date, end_date):
-        invoices = self.db.invoices.find({
-            "invoice_date": {
-                "$gte": start_date,
-                "$lte": end_date
-            }
-        })
+        pipeline = [
+            # Filtrar facturas entre las fechas dadas
+            {"$match": {
+                "invoice_date": {
+                    "$gte": start_date,
+                    "$lte": end_date
+                }
+            }},
 
-        # for invoice in invoices:
-        #     print(f"{invoice['_id']} - {invoice['invoice_date']} - ${invoice['total']}")
+            # Descomponer las líneas de factura
+            {"$unwind": "$lines"},
+
+            # Sumar la cantidad total de unidades vendidas
+            {"$group": {
+                "_id": None,
+                "cantidad_ventas": {"$sum": "$lines.quantity"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "cantidad_ventas": 1
+            }}
+        ]
+        result = list(self.db.invoices.aggregate(pipeline))
+        # print(result)
 
     @time_function 
     def get_genres_quantity_sold(self):
