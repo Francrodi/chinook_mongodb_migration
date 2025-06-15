@@ -2,8 +2,9 @@ from pymongo import MongoClient
 import os
 import time
 from bson.objectid import ObjectId
+from utils import time_function
 
-
+@time_function
 def create_connection() -> MongoClient:
     DB_URL = os.getenv('MONGO_DB_URL')
     MONGO_DB_TARGET = os.getenv('MONGO_DB_TARGET')    
@@ -34,7 +35,8 @@ def insert_customers(customer_docs: list, mongo_client: MongoClient):
     
 def insert_invoices(invoices_docs: list, mongo_client: MongoClient):
     mongo_client.invoices.insert_many(invoices_docs)
-    
+
+@time_function
 def get_artist_songs(artist: str, mongo_client: MongoClient):
     pipeline = [
         {"$match": {"name": artist}},
@@ -54,11 +56,9 @@ def get_artist_songs(artist: str, mongo_client: MongoClient):
         {"$unwind": "$track"},
         {"$project": {"_id": 1, "track_name": "$track.name"}}
     ]
-    start = time.time()
     res = mongo_client.artists.aggregate(pipeline)
-    end = time.time()
-    print(f"Duración de la query: {end - start:.4f} segundos")
-    
+
+@time_function
 def get_amount_of_songs_selled(mongo_client: MongoClient):
     pipeline = [
         # Descomponer el array de líneas de factura
@@ -90,15 +90,12 @@ def get_amount_of_songs_selled(mongo_client: MongoClient):
         # Ordenar por cantidad vendida
         {"$sort": {"total_vendida": -1}}
     ]
-
-    start = time.time()
     result = mongo_client.invoices.aggregate(pipeline)
-    end = time.time()
 
     # for track in result:
     #     print(f"{track['nombre_cancion']} - Vendida: {track['total_vendida']}")
-    print(f"Duración de la query: {end - start:.4f} segundos")
 
+@time_function
 def get_artists_in_genre(genre: str, mongo_client: MongoClient):
 
     pipeline = [
@@ -132,15 +129,13 @@ def get_artists_in_genre(genre: str, mongo_client: MongoClient):
         # Ordenar alfabéticamente
         {"$sort": {"nombre_artista": 1}}
     ]
-    start = time.time()
     result = mongo_client.tracks.aggregate(pipeline)
-    end = time.time()
     
     # print(f"Artistas con canciones del género '{genre}':\n")
     # for artista in result:
     #     print("-", artista["nombre_artista"])
-    print(f"Duración de la query: {end - start:.4f} segundos")
-    
+
+@time_function    
 def songs_in_playlist(playlist: str, mongo_client: MongoClient):
 
     pipeline = [
@@ -165,13 +160,11 @@ def songs_in_playlist(playlist: str, mongo_client: MongoClient):
             "nombre_cancion": "$canciones.name",
         }}
     ]
-    start = time.time()
     result = mongo_client.playlists.aggregate(pipeline)
-    end = time.time()
     # for track in result:
     #     print(f"{track['nombre_cancion']}")
-    print(f"Duración de la query: {end - start:.4f} segundos")
-    
+ 
+@time_function   
 def get_quantity_sold_tracks_by_artist(mongo_client: MongoClient):
     pipeline = [
         # Descomponer líneas de factura
@@ -221,15 +214,12 @@ def get_quantity_sold_tracks_by_artist(mongo_client: MongoClient):
         {"$sort": {"ventas_totales": -1}}
     ]
 
-    start = time.time()
     result = mongo_client.invoices.aggregate(pipeline)
-    end = time.time()
 
     # for artista in result:
     #     print(f"{artista['nombre_artista']}: {artista['ventas_totales']} unidades vendidas")
-    print(f"Duración de la query: {end - start:.4f} segundos")
     
-    
+@time_function
 def get_songs_bougth_by_customer(customer_id: str, mongo_client: MongoClient):
     pipeline = [
         # Filtrar facturas del cliente
@@ -255,29 +245,24 @@ def get_songs_bougth_by_customer(customer_id: str, mongo_client: MongoClient):
         {"$sort": {"_id": 1}}
     ]
     
-    start = time.time()
     result = mongo_client.invoices.aggregate(pipeline)
-    end = time.time()
     # print("Canciones compradas por el cliente:\n")
     # for doc in result:
     #     print("-", doc)
-    print(f"Duración de la query: {end - start:.4f} segundos")
     
-    
+@time_function
 def invoices_in_date_range(start_date, end_date, mongo_client: MongoClient):
-    start = time.time()
     invoices = mongo_client.invoices.find({
         "invoice_date": {
             "$gte": start_date,
             "$lte": end_date
         }
     })
-    end = time.time()
 
     # for invoice in invoices:
     #     print(f"{invoice['_id']} - {invoice['invoice_date']} - ${invoice['total']}")
-    print(f"Duración de la query: {end - start:.5f} segundos")
-    
+
+@time_function 
 def get_genres_quantity_sold(mongo_client: MongoClient):
     pipeline = [
         # Descomponer líneas de cada factura
@@ -301,16 +286,13 @@ def get_genres_quantity_sold(mongo_client: MongoClient):
         # Ordenar descendente por ventas
         {"$sort": {"cantidad_ventas": -1}}
     ]
-    start = time.time()
     result = mongo_client.invoices.aggregate(pipeline)
-    end = time.time()
 
     # print("Ventas por género:\n")
     # for genero in result:
     #     print(f"{genero['_id']}: {genero['cantidad_ventas']} unidades")
-    print(f"Duración de la query: {end - start:.5f} segundos")
     
-    
+@time_function   
 def amount_sold_by_month(mongo_client: MongoClient):
     pipeline = [
         # Descomponer cada línea de la factura
@@ -331,15 +313,12 @@ def amount_sold_by_month(mongo_client: MongoClient):
             "_id.mes": 1
         }}
     ]
-    start = time.time()
     result = mongo_client.invoices.aggregate(pipeline)
-    end = time.time()
     # print("Cantidad de ventas por mes:\n")
     # for doc in result:
     #     año = doc["_id"]["año"]
     #     mes = doc["_id"]["mes"]
     #     print(f"{año}-{mes:02d}: {doc['cantidad_ventas']} unidades")
-    print(f"Duración de la query: {end - start:.5f} segundos")
     
     
     
