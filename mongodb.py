@@ -297,7 +297,10 @@ class MongoConnection:
             # Agrupar por género y sumar cantidad de unidades vendidas
             {"$group": {
                 "_id": "$track.genre",
-                "cantidad_ventas": {"$sum": "$lines.quantity"}
+                "cantidad_ventas": {"$sum": "$lines.quantity"},
+                "monto": {"$sum": {
+                    "$multiply": ["$lines.quantity", "$lines.unit_price"]
+                }}
             }},
 
             # Ordenar descendente por ventas
@@ -307,7 +310,7 @@ class MongoConnection:
 
         # print("Ventas por género:\n")
         # for genero in result:
-        #     print(f"{genero['_id']}: {genero['cantidad_ventas']} unidades")
+        #     print(f"{genero['_id']}: {genero['cantidad_ventas']} unidades, {genero['monto']}")
         
     @time_function   
     def amount_sold_by_month(self):
