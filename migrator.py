@@ -1,15 +1,13 @@
-from pymongo import MongoClient
-from psycopg2.extensions import connection
-import rdb
+from rdb import PostgresHandler
 from mongodb import MongoConnection
 from bson.objectid import ObjectId
 from bson.decimal128 import Decimal128
 
 
-def migrate_artists(pg_conn: connection, mongodb: MongoConnection) -> list:
+def migrate_artists(pg_handler: PostgresHandler, mongodb: MongoConnection) -> list:
     pg_artists_ids = {} # diccionario con id postgres a id mongo para busqueda de FK
     artists_docs = [] # listado de artistas a insertar en mongo
-    pg_artists = rdb.select_artists(pg_conn)
+    pg_artists = pg_handler.select_artists()
     for id, name in pg_artists:
         artist_doc_id = ObjectId()
         pg_artists_ids[id] = artist_doc_id
@@ -20,10 +18,10 @@ def migrate_artists(pg_conn: connection, mongodb: MongoConnection) -> list:
     mongodb.insert_artists(artists_docs)
     return pg_artists_ids
 
-def migrate_albums(pg_artists_ids, pg_conn: connection, mongodb: MongoConnection) -> list:
+def migrate_albums(pg_artists_ids, pg_handler: PostgresHandler, mongodb: MongoConnection) -> list:
     pg_albums_ids = {} # diccionario con id postgres a id mongo para busqueda de FK
     albums_docs = [] # listado de albumes a insertar en mongo
-    pg_albums = rdb.select_albums(pg_conn)
+    pg_albums = pg_handler.select_albums()
     for id, title, artist_id in pg_albums:
         album_doc_id = ObjectId()
         pg_albums_ids[id] = album_doc_id
@@ -35,10 +33,10 @@ def migrate_albums(pg_artists_ids, pg_conn: connection, mongodb: MongoConnection
     mongodb.insert_albums(albums_docs)
     return pg_albums_ids
 
-def migrate_tracks(pg_albums_ids: list, pg_conn: connection, mongodb: MongoConnection) -> list:
+def migrate_tracks(pg_albums_ids: list, pg_handler: PostgresHandler, mongodb: MongoConnection) -> list:
     pg_tracks_ids = {} # diccionario con id postgres a id mongo para busqueda de FK
     tracks_docs = [] # listado de tracks a insertar en mongo
-    pg_tracks = rdb.select_tracks_with_genre_and_media_type(pg_conn)
+    pg_tracks = pg_handler.select_tracks_with_genre_and_media_type()
     for track in pg_tracks:
         track_doc_id = ObjectId()
         pg_tracks_ids[track["track_id"]] = track_doc_id
@@ -56,9 +54,9 @@ def migrate_tracks(pg_albums_ids: list, pg_conn: connection, mongodb: MongoConne
     mongodb.insert_tracks(tracks_docs)
     return pg_tracks_ids
 
-def migrate_playlists(pg_tracks_ids: list, pg_conn: connection, mongodb: MongoConnection):
+def migrate_playlists(pg_tracks_ids: list, pg_handler: PostgresHandler, mongodb: MongoConnection):
     playlists = {} # Diccionario clave_pg: valor_doc_mongo
-    pg_playlists = rdb.select_playlists_with_tracks(pg_conn)
+    pg_playlists = pg_handler.select_playlists_with_tracks()
     for playlist_id, playlist_name, track_id in pg_playlists:
         if playlist_id in playlists:
             playlists[playlist_id]["tracks"].append(pg_tracks_ids[track_id])
@@ -70,10 +68,10 @@ def migrate_playlists(pg_tracks_ids: list, pg_conn: connection, mongodb: MongoCo
             }
     mongodb.insert_playlists(list(playlists.values()))
     
-def migrate_employees(pg_conn: connection, mongodb: MongoConnection) -> list:
+def migrate_employees(pg_handler: PostgresHandler, mongodb: MongoConnection) -> list:
     pg_employees_ids = {} # diccionario con id postgres a id mongo para busqueda de FK y referencias circulares
     employees_docs = []
-    pg_employees = rdb.select_employees(pg_conn)
+    pg_employees = pg_handler.select_employees()
     for employee in pg_employees:
         employees_docs.append({
             "_id": _resolve_employee_id(employee["employee_id"], pg_employees_ids),
@@ -95,10 +93,10 @@ def migrate_employees(pg_conn: connection, mongodb: MongoConnection) -> list:
     mongodb.insert_employees(employees_docs)
     return pg_employees_ids
 
-def migrate_customers(pg_employees_ids: list, pg_conn: connection, mongodb: MongoConnection) -> list:
+def migrate_customers(pg_employees_ids: list, pg_handler: PostgresHandler, mongodb: MongoConnection) -> list:
     pg_customers_ids = {} # diccionario con id postgres a id mongo para busqueda de FK
     customer_docs = []
-    pg_customers = rdb.select_customers(pg_conn)
+    pg_customers = pg_handler.select_customers()
     for customer in pg_customers:
         customer_doc_id = ObjectId()
         pg_customers_ids[customer["customer_id"]] = customer_doc_id
@@ -120,9 +118,9 @@ def migrate_customers(pg_employees_ids: list, pg_conn: connection, mongodb: Mong
     mongodb.insert_customers(customer_docs)
     return pg_customers_ids
 
-def migrate_invoices(pg_customers_ids: list, pg_tracks_ids: list, pg_conn: connection, mongodb: MongoConnection):
+def migrate_invoices(pg_customers_ids: list, pg_tracks_ids: list, pg_handler: PostgresHandler, mongodb: MongoConnection):
     invoices = {} # Diccionario clave_pg: valor_doc_mongo
-    pg_invoices = rdb.select_invoices_with_invoices_lines(pg_conn)
+    pg_invoices = pg_handler.select_invoices_with_invoices_lines()
     for invoice in pg_invoices:
         line = {
             "track_id": pg_tracks_ids[invoice["track_id"]],

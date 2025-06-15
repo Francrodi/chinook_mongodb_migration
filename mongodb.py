@@ -84,7 +84,6 @@ class MongoConnection:
             # Proyección final
             {"$project": {
                 "_id": 0,
-                "track_id": "$_id",
                 "nombre_cancion": "$track.name",
                 "total_vendida": 1
             }},
@@ -340,5 +339,7 @@ class MongoConnection:
         #     mes = doc["_id"]["mes"]
         #     print(f"{año}-{mes:02d}: {doc['cantidad_ventas']} unidades")
     
-    
+    def get_customer_id_from_last_name(self, last_name: str):
+        customer = self.db.customers.find({"last_name": last_name})
+        return customer[0]["_id"]
     
