@@ -68,8 +68,7 @@ class PostgresHandler:
                         ''')
             return cursor.fetchall()
     
-    @time_function
-    def get_artist_songs(self, artist: str):
+    def get_artist_songs(self, artist: str = "AC/DC"):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
                         SELECT t.track_id, t.name AS track_name, al.title AS album_title, ar.name AS artist_name
@@ -80,7 +79,6 @@ class PostgresHandler:
                 ''')
             return cursor.fetchall()
     
-    @time_function
     def get_amount_of_songs_selled(self):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
@@ -92,7 +90,7 @@ class PostgresHandler:
                 ''')
             return cursor.fetchall()
     
-    @time_function
+    
     def songs_in_playlist(self, playlist: str):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
@@ -104,7 +102,7 @@ class PostgresHandler:
                 ''')
             return cursor.fetchall()
     
-    @time_function
+    
     def get_artists_in_genre(self, genre: str):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
@@ -117,7 +115,7 @@ class PostgresHandler:
                 ''')
             return cursor.fetchall()
     
-    @time_function
+    
     def get_quantity_sold_tracks_by_artist(self):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
@@ -131,7 +129,7 @@ class PostgresHandler:
                 ''')
             return cursor.fetchall()
     
-    @time_function
+    
     def get_songs_bought_by_customer(self, customer_id: str):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
@@ -144,7 +142,7 @@ class PostgresHandler:
                 ''')
             return cursor.fetchall()
     
-    @time_function 
+     
     def invoices_in_date_range(self, start_date, end_date):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
@@ -155,7 +153,7 @@ class PostgresHandler:
                 ''')
             return cursor.fetchall()
     
-    @time_function    
+        
     def get_genres_quantity_sold(self):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
@@ -168,7 +166,7 @@ class PostgresHandler:
                 ''')
             return cursor.fetchall()
     
-    @time_function
+    
     def amount_sold_by_month(self):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''

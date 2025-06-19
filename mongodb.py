@@ -38,7 +38,7 @@ class MongoConnection:
     def insert_invoices(self, invoices_docs: list):
         self.db.invoices.insert_many(invoices_docs)
 
-    @time_function
+    
     def get_artist_songs(self, artist: str):
         pipeline = [
             {"$match": {"name": artist}},
@@ -60,7 +60,7 @@ class MongoConnection:
         ]
         res = self.db.artists.aggregate(pipeline)
 
-    @time_function
+    
     def get_amount_of_songs_selled(self):
         pipeline = [
             # Descomponer el array de líneas de factura
@@ -96,7 +96,7 @@ class MongoConnection:
         # for track in result:
         #     print(f"{track['nombre_cancion']} - Vendida: {track['total_vendida']}")
 
-    @time_function
+    
     def get_artists_in_genre(self, genre: str):
 
         pipeline = [
@@ -136,7 +136,7 @@ class MongoConnection:
         # for artista in result:
         #     print("-", artista["nombre_artista"])
 
-    @time_function    
+        
     def songs_in_playlist(self, playlist: str):
 
         pipeline = [
@@ -165,7 +165,7 @@ class MongoConnection:
         # for track in result:
         #     print(f"{track['nombre_cancion']}")
     
-    @time_function   
+       
     def get_quantity_sold_tracks_by_artist(self):
         pipeline = [
             # Descomponer líneas de factura
@@ -220,7 +220,7 @@ class MongoConnection:
         # for artista in result:
         #     print(f"{artista['nombre_artista']}: {artista['ventas_totales']} unidades vendidas")
         
-    @time_function
+    
     def get_songs_bought_by_customer(self, customer_id: str):
         pipeline = [
             # Filtrar facturas del cliente
@@ -251,7 +251,7 @@ class MongoConnection:
         # for doc in result:
         #     print("-", doc)
         
-    @time_function
+    
     def invoices_in_date_range(self, start_date, end_date):
         pipeline = [
             # Filtrar facturas entre las fechas dadas
@@ -278,7 +278,7 @@ class MongoConnection:
         result = list(self.db.invoices.aggregate(pipeline))
         # print(result)
 
-    @time_function 
+     
     def get_genres_quantity_sold(self):
         pipeline = [
             # Descomponer líneas de cada factura
@@ -311,7 +311,7 @@ class MongoConnection:
         # for genero in result:
         #     print(f"{genero['_id']}: {genero['cantidad_ventas']} unidades, {genero['monto']}")
         
-    @time_function   
+       
     def amount_sold_by_month(self):
         pipeline = [
             # Descomponer cada línea de la factura
@@ -342,4 +342,9 @@ class MongoConnection:
     def get_customer_id_from_last_name(self, last_name: str):
         customer = self.db.customers.find({"last_name": last_name})
         return customer[0]["_id"]
+    
+    def create_track_album_artist_index(self):
+        self.db.artists.create_index([("name", 1)])
+        self.db.albums.create_index([("artist_id", 1)])
+        self.db.tracks.create_index([("album_id", 1)])
     
