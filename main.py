@@ -91,6 +91,12 @@ if __name__ == "__main__":
     mongo_benchmark1.benchmark_query(mongodb.get_genres_quantity_sold, "Ventas segun genero", iterations=100)
     mongo_benchmark1.benchmark_query(mongodb.amount_sold_by_month, "Ventas segun mes", iterations=100)
     
+    optimizer.embed_artist_name_in_tracks()
+    mongo_benchmark.benchmark_query(mongodb.get_artist_songs_v2, "Canciones de un artista (embebido)", param_list=artist_params, iterations=100)
+    mongo_benchmark.benchmark_query(mongodb.get_artists_in_genre_v2, "Artistas segun género", param_list=artist_genre_params, iterations=100)
+    mongo_benchmark1.benchmark_query(mongodb.get_quantity_sold_tracks_by_artist_v2, "Cantidad de canciones vendidas por artista", iterations=100)
+    
+    
     
     
     

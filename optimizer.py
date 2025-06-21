@@ -7,3 +7,8 @@ class MongoOptimizer:
     def add_track_album_artist_indexes(self):
         print("Agregando indices en colecciones...")
         self.mongo.create_track_album_artist_index()
+        
+    def embed_artist_name_in_tracks(self):
+        print("Agregando artistas en tracks...")
+        self.mongo.embed_artists_on_tracks()
+        self.mongo.create_artist_track_index()

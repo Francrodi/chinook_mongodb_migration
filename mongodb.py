@@ -37,6 +37,48 @@ class MongoConnection:
         
     def insert_invoices(self, invoices_docs: list):
         self.db.invoices.insert_many(invoices_docs)
+        
+    def embed_artists_on_tracks(self):
+        pipeline = [
+            {
+                "$lookup": {
+                    "from": "albums",
+                    "localField": "album_id",
+                    "foreignField": "_id",
+                    "as": "album"
+                }
+            },
+            { "$unwind": "$album" },
+            {
+                "$lookup": {
+                    "from": "artists",
+                    "localField": "album.artist_id",
+                    "foreignField": "_id",
+                    "as": "artist"
+                }
+            },
+            { "$unwind": "$artist" },
+            {
+                "$addFields": {
+                    "artist_name": "$artist.name"
+                }
+            },
+            {
+                "$project": {
+                    "album": 0,
+                    "artist": 0
+                }
+            },
+            {
+                "$merge": {
+                    "into": "tracks",
+                    "whenMatched": "merge",
+                    "whenNotMatched": "discard"
+                }
+            }
+        ]
+        self.db.tracks.aggregate(pipeline)
+
 
     
     def get_artist_songs(self, artist: str):
@@ -59,6 +101,9 @@ class MongoConnection:
             {"$project": {"_id": 1, "track_name": "$track.name"}}
         ]
         res = self.db.artists.aggregate(pipeline)
+    
+    def get_artist_songs_v2(self, artist: str):
+        res = self.db.tracks.find({"$artist_name": artist}, {"_id": 1, "track_name": "$track.name"})
 
     
     def get_amount_of_songs_selled(self):
@@ -135,6 +180,21 @@ class MongoConnection:
         # print(f"Artistas con canciones del género '{genre}':\n")
         # for artista in result:
         #     print("-", artista["nombre_artista"])
+        
+    def get_artists_in_genre_v2(self, genre: str):
+        pipeline = [
+            {"$match": {"genre": genre}},
+            {"$group": {
+                "_id": "$tracks.artist_name",
+                "nombre_artista": {"$first": "$tracks.artist_name"}
+            }},
+            {"$sort": {"nombre_artista": 1}}
+        ]
+        result = self.db.tracks.aggregate(pipeline)
+        
+        # print(f"Artistas con canciones del género '{genre}':\n")
+        # for artista in result:
+        #     print("-", artista["nombre_artista"])
 
         
     def songs_in_playlist(self, playlist: str):
@@ -200,6 +260,51 @@ class MongoConnection:
                 "from": "artists",
                 "localField": "album.artist_id",
                 "foreignField": "_id",
+                "as": "artist"
+            }},
+            {"$unwind": "$artist"},
+
+            # Agrupar por artista y sumar todas sus ventas
+            {"$group": {
+                "_id": "$artist._id",
+                "nombre_artista": {"$first": "$artist.name"},
+                "ventas_totales": {"$sum": "$unidades_vendidas"}
+            }},
+
+            # Ordenar descendente por ventas
+            {"$sort": {"ventas_totales": -1}}
+        ]
+
+        result = self.db.invoices.aggregate(pipeline)
+
+        # for artista in result:
+        #     print(f"{artista['nombre_artista']}: {artista['ventas_totales']} unidades vendidas")
+    
+    def get_quantity_sold_tracks_by_artist_v2(self):
+        pipeline = [
+            # Descomponer líneas de factura
+            {"$unwind": "$lines"},
+
+            # Agrupar por track_id para sumar las ventas por track
+            {"$group": {
+                "_id": "$lines.track_id",  # referencia al track
+                "unidades_vendidas": {"$sum": "$lines.quantity"}
+            }},
+
+            # Unir con la colección de tracks
+            {"$lookup": {
+                "from": "tracks",
+                "localField": "_id",
+                "foreignField": "_id",
+                "as": "track"
+            }},
+            {"$unwind": "$track"},
+
+            # Unir con la colección de artists (usando album.artist_id)
+            {"$lookup": {
+                "from": "artists",
+                "localField": "track.artist_name",
+                "foreignField": "name",
                 "as": "artist"
             }},
             {"$unwind": "$artist"},
@@ -347,4 +452,7 @@ class MongoConnection:
         self.db.artists.create_index([("name", 1)])
         self.db.albums.create_index([("artist_id", 1)])
         self.db.tracks.create_index([("album_id", 1)])
+        
+    def create_artist_track_index(self):
+        self.db.tracks.create_index([("artist_name", 1)])
     
