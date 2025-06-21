@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 import os
 from bson.objectid import ObjectId
-from utils import time_function
 
 class MongoConnection:
     def __init__(self):

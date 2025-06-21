@@ -1,7 +1,6 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
-from utils import time_function
 
 class PostgresHandler:
     def __init__(self):
