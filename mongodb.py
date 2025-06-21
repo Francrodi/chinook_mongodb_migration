@@ -265,7 +265,6 @@ class MongoConnection:
 
             # Agrupar por artista y sumar todas sus ventas
             {"$group": {
-                "_id": "$artist._id",
                 "nombre_artista": {"$first": "$artist.name"},
                 "ventas_totales": {"$sum": "$unidades_vendidas"}
             }},
@@ -299,24 +298,23 @@ class MongoConnection:
             }},
             {"$unwind": "$track"},
 
-            # Unir con la colección de artists (usando album.artist_id)
-            {"$lookup": {
-                "from": "artists",
-                "localField": "track.artist_name",
-                "foreignField": "name",
-                "as": "artist"
-            }},
-            {"$unwind": "$artist"},
-
             # Agrupar por artista y sumar todas sus ventas
             {"$group": {
-                "_id": "$artist._id",
-                "nombre_artista": {"$first": "$artist.name"},
-                "ventas_totales": {"$sum": "$unidades_vendidas"}
+                "_id": "$track.artist_name",
+                "ventas_totales": {
+                    "$sum": "$unidades_vendidas"
+                }
             }},
 
             # Ordenar descendente por ventas
-            {"$sort": {"ventas_totales": -1}}
+            {"$sort": {"ventas_totales": -1}},
+            {"$project":
+                {
+                    "_id": 0,
+                    "nombre_artista": "$_id",
+                    "ventas_totales": 1
+                }
+            }
         ]
 
         result = self.db.invoices.aggregate(pipeline)
