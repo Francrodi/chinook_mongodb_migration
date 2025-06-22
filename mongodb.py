@@ -358,6 +358,26 @@ class MongoConnection:
 
         # for artista in result:
         #     print(f"{artista['nombre_artista']}: {artista['ventas_totales']} unidades vendidas")
+    
+    def get_quantity_sold_tracks_by_artist_v3(self):
+        pipeline = [
+            # Agrupar por artista
+            {"$group": {
+                "_id": "$artist_name",
+                "ventas_totales": {"$sum": "$quantity_sold"}
+            }},
+            {"$project":
+                {
+                    "_id": 0,
+                    "nombre_artista": "$_id",
+                    "ventas_totales": 1
+                }
+            }
+        ]
+        
+        result = self.db.tracks.aggregate(pipeline)
+        # for artista in result:
+        #     print(f"{artista['nombre_artista']}: {artista['ventas_totales']} unidades vendidas")
         
     
     def get_songs_bought_by_customer(self, customer_id: str):
@@ -445,6 +465,22 @@ class MongoConnection:
             {"$sort": {"cantidad_ventas": -1}}
         ]
         result = self.db.invoices.aggregate(pipeline)
+
+        # print("Ventas por género:\n")
+        # for genero in result:
+        #     print(f"{genero['_id']}: {genero['cantidad_ventas']} unidades, {genero['monto']}")
+    
+    def get_genres_quantity_sold_v2(self):
+        pipeline = [
+            # Agrupar por género y sumar cantidad de unidades vendidas
+            {"$group": {
+                "_id": "$genre",
+                "cantidad_ventas": {"$sum": "$quantity_sold"},
+            }},
+            # Ordenar descendente por ventas
+            {"$sort": {"cantidad_ventas": -1}}
+        ]
+        result = self.db.tracks.aggregate(pipeline)
 
         # print("Ventas por género:\n")
         # for genero in result:

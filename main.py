@@ -97,6 +97,12 @@ if __name__ == "__main__":
     mongo_benchmark.benchmark_query(mongodb.get_artist_songs_v2, "Canciones de un artista (embebido)", param_list=artist_params, iterations=100)
     mongo_benchmark1.benchmark_query(mongodb.get_amount_of_songs_selled_v2, "Cantidad de ventas por cancion (embebido)", iterations=100)
     mongo_benchmark.benchmark_query(mongodb.get_artists_in_genre_v2, "Artistas segun género (embebido)", param_list=artist_genre_params, iterations=100)
-    mongo_benchmark1.benchmark_query(mongodb.get_quantity_sold_tracks_by_artist_v2, "Cantidad de canciones vendidas por artista (embebido)", iterations=100)
+    mongo_benchmark1.benchmark_query(mongodb.songs_in_playlist, "Canciones en playlist", param_list=playlist_songs_params, iterations=100)
+    # mongo_benchmark1.benchmark_query(mongodb.get_quantity_sold_tracks_by_artist_v2, "Cantidad de canciones vendidas por artista (artista embebido)", iterations=100)
+    mongo_benchmark1.benchmark_query(mongodb.get_quantity_sold_tracks_by_artist_v3, "Cantidad de canciones vendidas por artista (ventas y artista embebido)", iterations=100)
+    mongo_benchmark1.benchmark_query(mongodb.get_songs_bought_by_customer, "Canciones compradas por cliente", param_list=mongo_db_customer_songs_params, iterations=100)
+    mongo_benchmark1.benchmark_query(mongodb.invoices_in_date_range, "Ventas en periodo de tiempo", param_list=invoices_date_range_params, iterations=100)
+    mongo_benchmark1.benchmark_query(mongodb.get_genres_quantity_sold_v2, "Ventas segun genero (ventas embebidas - sin monto)", iterations=100)
+    mongo_benchmark1.benchmark_query(mongodb.amount_sold_by_month, "Ventas segun mes", iterations=100)
     
     
