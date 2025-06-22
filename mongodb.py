@@ -77,9 +77,33 @@ class MongoConnection:
             }
         ]
         self.db.tracks.aggregate(pipeline)
-
-
+        
+    def embed_quantity_sold_in_tracks(self):
+        pipeline = [
+            {"$unwind": "$lines"},
+            {
+              "$group": {
+                  "_id": "$lines.track_id",
+                  "quantity_sold": {"$sum": "$lines.quantity"}
+              }  
+            },
+            {
+                "$merge": {
+                    "into": "tracks",
+                    "on": "_id",
+                    "whenMatched": "merge",
+                    "whenNotMatched": "discard"
+                }
+            }
+        ]
+        self.db.invoices.aggregate(pipeline)
     
+    def set_zero_quantity_sold_for_unsold_tracks(self):
+        self.db.tracks.update_many(
+            {"quantity_sold": {"$exists": False}},
+            {"$set": {"quantity_sold": 0}}
+        )
+
     def get_artist_songs(self, artist: str):
         pipeline = [
             {"$match": {"name": artist}},
@@ -113,7 +137,7 @@ class MongoConnection:
             # Agrupar por track_id
             {"$group": {
                 "_id": "$lines.track_id",
-                "total_vendida": {"$sum": "$lines.quantity"}
+                "total_ventas": {"$sum": "$lines.quantity"}
             }},
 
             # Unir con la colección "tracks"
@@ -129,16 +153,21 @@ class MongoConnection:
             {"$project": {
                 "_id": 0,
                 "nombre_cancion": "$track.name",
-                "total_vendida": 1
+                "total_ventas": 1
             }},
 
             # Ordenar por cantidad vendida
-            {"$sort": {"total_vendida": -1}}
+            {"$sort": {"total_ventas": -1}}
         ]
         result = self.db.invoices.aggregate(pipeline)
 
         # for track in result:
         #     print(f"{track['nombre_cancion']} - Vendida: {track['total_vendida']}")
+    
+    def get_amount_of_songs_selled_v2(self):
+        result = self.db.tracks.find(
+            {}, {"_id": 0, "nombre_cancion": "$name", "total_vendidas": "$quantity_sold"}
+            ).sort("quantity_sold", -1)
 
     
     def get_artists_in_genre(self, genre: str):
@@ -265,9 +294,17 @@ class MongoConnection:
 
             # Agrupar por artista y sumar todas sus ventas
             {"$group": {
+                "_id": {"$first": "$artist.id"},
                 "nombre_artista": {"$first": "$artist.name"},
                 "ventas_totales": {"$sum": "$unidades_vendidas"}
             }},
+            {"$project":
+                {
+                    "_id": 0,
+                    "nombre_artista": 1,
+                    "ventas_totales": 1
+                }
+            },
 
             # Ordenar descendente por ventas
             {"$sort": {"ventas_totales": -1}}

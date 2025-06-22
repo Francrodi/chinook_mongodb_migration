@@ -54,7 +54,6 @@ if __name__ == "__main__":
     
     print("Benchmark PostgreSQL")
     
-    
     pg_benchmark.benchmark_query(pg_handler.get_artist_songs, "Canciones de un artista", param_list=artist_params, iterations=100)
     pg_benchmark.benchmark_query(pg_handler.get_amount_of_songs_selled, "Cantidad de ventas por cancion", iterations=100)
     pg_benchmark.benchmark_query(pg_handler.get_artists_in_genre, "Artistas segun genero", param_list=artist_genre_params, iterations=100)
@@ -79,7 +78,7 @@ if __name__ == "__main__":
     
 
     
-    print("Optimizaciones: ")
+    print("Optimizacion con indices: ")
     optimizer.add_track_album_artist_indexes()
     mongo_benchmark1.benchmark_query(mongodb.get_artist_songs, "Canciones de un artista", param_list=artist_params, iterations=100)
     mongo_benchmark1.benchmark_query(mongodb.get_amount_of_songs_selled, "Cantidad de ventas por cancion", iterations=100)
@@ -91,12 +90,13 @@ if __name__ == "__main__":
     mongo_benchmark1.benchmark_query(mongodb.get_genres_quantity_sold, "Ventas segun genero", iterations=100)
     mongo_benchmark1.benchmark_query(mongodb.amount_sold_by_month, "Ventas segun mes", iterations=100)
     
+    
+    print("Optimizacion con patrones: ")
     optimizer.embed_artist_name_in_tracks()
+    optimizer.embed_quantity_sold_into_tracks()
     mongo_benchmark.benchmark_query(mongodb.get_artist_songs_v2, "Canciones de un artista (embebido)", param_list=artist_params, iterations=100)
-    mongo_benchmark.benchmark_query(mongodb.get_artists_in_genre_v2, "Artistas segun género", param_list=artist_genre_params, iterations=100)
-    mongo_benchmark1.benchmark_query(mongodb.get_quantity_sold_tracks_by_artist_v2, "Cantidad de canciones vendidas por artista", iterations=100)
-    
-    
-    
+    mongo_benchmark1.benchmark_query(mongodb.get_amount_of_songs_selled_v2, "Cantidad de ventas por cancion (embebido)", iterations=100)
+    mongo_benchmark.benchmark_query(mongodb.get_artists_in_genre_v2, "Artistas segun género (embebido)", param_list=artist_genre_params, iterations=100)
+    mongo_benchmark1.benchmark_query(mongodb.get_quantity_sold_tracks_by_artist_v2, "Cantidad de canciones vendidas por artista (embebido)", iterations=100)
     
     

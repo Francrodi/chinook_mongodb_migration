@@ -12,3 +12,9 @@ class MongoOptimizer:
         print("Agregando artistas en tracks...")
         self.mongo.embed_artists_on_tracks()
         self.mongo.create_artist_track_index()
+        
+    def embed_quantity_sold_into_tracks(self):
+        print("Agregando cantidad de ventas en tracks...")
+        self.mongo.embed_quantity_sold_in_tracks()
+        self.mongo.set_zero_quantity_sold_for_unsold_tracks()
+        
