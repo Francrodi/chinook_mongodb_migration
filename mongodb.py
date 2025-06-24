@@ -455,10 +455,7 @@ class MongoConnection:
             # Agrupar por género y sumar cantidad de unidades vendidas
             {"$group": {
                 "_id": "$track.genre",
-                "cantidad_ventas": {"$sum": "$lines.quantity"},
-                "monto": {"$sum": {
-                    "$multiply": ["$lines.quantity", "$lines.unit_price"]
-                }}
+                "cantidad_ventas": {"$sum": "$lines.quantity"}
             }},
 
             # Ordenar descendente por ventas

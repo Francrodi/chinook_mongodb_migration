@@ -156,12 +156,12 @@ class PostgresHandler:
     def get_genres_quantity_sold(self):
         with self.pg_conn.cursor() as cursor:
             cursor.execute(f'''
-                        SELECT g.name AS genre, COUNT(il.invoice_line_id) AS tracks_sold, SUM(il.unit_price * il.quantity) AS revenue
+                        SELECT g.name AS genre, COUNT(il.invoice_line_id) AS tracks_sold
                         FROM genre g
                         JOIN track t ON g.genre_id = t.genre_id
                         JOIN invoice_line il ON t.track_id = il.track_id
                         GROUP BY g.name
-                        ORDER BY revenue DESC;
+                        ORDER BY tracks_sold DESC;
                 ''')
             return cursor.fetchall()
     
