@@ -175,3 +175,11 @@ class PostgresHandler:
                         GROUP BY month
                 ''')
             return cursor.fetchall()
+
+    def insert_track(self, track):
+        with self.pg_conn.cursor() as cursor:
+            cursor.execute(f'''
+                        INSERT INTO track (track_id, name, album_id, media_type_id, genre_id, composer, milliseconds, bytes, unit_price)
+                        VALUES ({track["track_id"]}, {track["name"]}, {track["album_id"]}, {track["media_type_id"]}, {track["genre_id"]}, {track["composer"]}, {track["milliseconds"]}, {track["bytes"]}, {track["unit_price"]})
+                    ''')
+            self.pg_conn.commit()

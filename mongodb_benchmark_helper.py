@@ -48,9 +48,10 @@ class DatabaseBenchmark:
     ) -> BenchmarkResult:
         print("*" * 60)
         # Warm-up para llenar cache y estabilizar
-        for i in range(warmup):
-            kwargs = param_list[i % len(param_list)] if param_list else {}
-            _ = query_function(**kwargs)
+        if warmup > 0:
+            for i in range(warmup):
+                kwargs = param_list[i % len(param_list)] if param_list else {}
+                _ = query_function(**kwargs)
         
         # Mediciones reales
         times = []

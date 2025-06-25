@@ -6,6 +6,8 @@ from optimizer import MongoOptimizer
 from mongodb_benchmark_helper import DatabaseBenchmark
 from datetime import datetime
 from dotenv import load_dotenv
+from random import randint
+from bson.objectid import ObjectId
 
 load_dotenv()
 
@@ -105,4 +107,34 @@ if __name__ == "__main__":
     mongo_benchmark1.benchmark_query(mongodb.get_genres_quantity_sold_v2, "Ventas segun genero (ventas embebidas)", iterations=100)
     mongo_benchmark1.benchmark_query(mongodb.amount_sold_by_month, "Ventas segun mes", iterations=100)
     
-    
+    NUM_INSERTS = 1000
+    tracks_pg = [
+        {   
+            "track_id": 3504 + i,
+            "name": f"'Track {i}'",
+            "album_id": randint(1, 100),
+            "media_type_id": randint(1, 5),
+            "genre_id": randint(1, 25),
+            "composer": "'Test Composer'",
+            "milliseconds": randint(100000, 400000),
+            "bytes": randint(1000000, 5000000),
+            "unit_price": 0.99
+        } for i in range(NUM_INSERTS)
+    ]
+    track_params = [{"track": i} for i in tracks_pg]
+    pg_benchmark.benchmark_query(pg_handler.insert_track, "Insercion de tracks", param_list=track_params, iterations=NUM_INSERTS, warmup=0)
+    tracks_mongo = [
+        {
+            "_id": ObjectId(),
+            "name": f"Track {i}",
+            "album_id": randint(1, 100),
+            "media_type": "AAC audio file",
+            "genre": "Rock",
+            "composer": "Test Composer",
+            "milliseconds": randint(100000, 400000),
+            "bytes": randint(1000000, 5000000),
+            "unit_price": 0.99
+        } for i in range(NUM_INSERTS)
+    ]
+    track_params = [{"track": i} for i in tracks_mongo]
+    mongo_benchmark1.benchmark_query(mongodb.insert_track, "Insercion de tracks", param_list=track_params, iterations=NUM_INSERTS, warmup=0)

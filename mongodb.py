@@ -36,6 +36,9 @@ class MongoConnection:
         
     def insert_invoices(self, invoices_docs: list):
         self.db.invoices.insert_many(invoices_docs)
+    
+    def insert_track(self, track):
+        self.db.tracks.insert_one(track)
         
     def embed_artists_on_tracks(self):
         pipeline = [
